@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kisan Vishwa Admin - Customer Management">
+    <title>Admin - Customers</title>
+    
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+</head>
+
+<body>
+    {% include 'NavBar/AdminNavBar.html' %}
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Customer Management</h1>
+            <p class="subtitle">Total Customers: {{ customers.count }}</p>
+        </div>
+
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Orders</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="customer-info">
+                                <i class="fas fa-user"></i>
+                                <span>{{ customer.user.username }}</span>
+                            </div>
+                        </td>
+                        <td>{{ customer.user.email }}</td>
+                        <td>
+                            <span class="order-count">
+                                {{ customer.order_count }}
+                                <span class="order-label">orders</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_customer">
+                                    <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                                    <button type="submit" class="btn-delete">
+                                        <i class="fas fa-trash"></i>
+                                        <span>Remove</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', (event) => {
+                if (!confirm('Are you sure you want to remove this customer?')) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

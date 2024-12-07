@@ -1,0 +1,282 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Montserrat:wght@500;700&display=swap');
+
+:root {
+  --warm-beige: #FAF7F2;
+  --dark-beige: #E5E0D8;
+  --dark-gray: #333333;
+  --white: #ffffff;
+  --forest-green: #28A745;
+  --dark-green: #218838;
+  --light-gray: #f9f9f9;
+  --text-gray: #4A4A4A;
+  --text-primary: #2D2D2D;
+  --text-secondary: #555;
+  --border-color: #e0e0e0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Header and Navigation styles */
+.site-header {
+  background-color: var(--white);
+  box-shadow: 0 2px 10px var(--shadow-color);
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  isolation: isolate;
+}
+
+.header-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+  gap: 2rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text-primary);
+  padding-left: 0;
+}
+
+.logo img {
+  height: 50px;
+  width: auto;
+  margin-right: 12px;
+}
+
+.brand-name {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 1rem;
+  isolation: isolate;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.3s;
+  height: 100%;
+  gap: 8px;
+}
+
+.nav-item:hover {
+  color: #4CAF50;
+}
+
+.nav-item i {
+  margin-right: 8px;
+}
+
+.nav-item.active {
+  color: #4CAF50;
+}
+
+.badge {
+  background-color: #4CAF50;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  min-width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+  position: relative;
+  top: -2px;
+}
+
+.user-menu {
+  position: relative;
+  margin-left: 1rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.user-menu-toggle {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  min-width: 220px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.2s ease;
+  z-index: 101;
+  padding: 8px 0;
+  margin-top: 5px;
+  isolation: isolate;
+}
+
+.dropdown-section {
+  padding: 4px 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+  color: var(--forest-green);
+}
+
+.dropdown-item i {
+  width: 20px;
+  margin-right: 12px;
+  font-size: 1rem;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 4px 0;
+}
+
+/* Special styling for logout */
+.logout-item {
+  color: #dc3545;
+}
+
+.logout-item:hover {
+  background-color: #fff5f5;
+  color: #dc3545;
+}
+
+/* Animation for dropdown */
+.dropdown-menu {
+  transform-origin: top right;
+  animation: dropdownFade 0.2s ease;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Update the body padding and navbar styles */
+body {
+    padding-top: 45px !important; /* Force override */
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    isolation: isolate;
+}
+
+/* Add padding to the main content container */
+.dashboard-container {
+    padding: 20px;
+    margin-top: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Update welcome section margin */
+.welcome-section {
+    background: var(--forest-green);
+    color: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Optional: Add some responsive padding */
+@media (min-width: 1200px) {
+    .header-container {
+        padding: 0 2rem;
+    }
+}
+
+/* Show dropdown on hover */
+.user-menu:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Prevent dropdown from closing when hovering over it */
+.dropdown-menu:hover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}

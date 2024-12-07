@@ -1,0 +1,141 @@
+:root {
+    --primary-color: #28a745;
+    --secondary-color: #218838;
+    --background-color: #F7F5EB;
+    --text-color: #333;
+    --hover-color: #A8D45C;
+}
+
+/* Navigation Container */
+.home-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--background-color);
+    padding: 10px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    width: 100%;
+}
+
+.logo img {
+    height: 50px;
+    margin-right: 20px;
+}
+
+/* Main Navigation List */
+.nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+}
+
+/* Navigation Items */
+.nav-item {
+    margin: 0 15px;
+    display: flex;
+    align-items: center;
+}
+
+.nav-item a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+.nav-item a:hover {
+    color: var(--hover-color);
+}
+
+/* Search and Cart Section */
+.search-cart {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: 20px;
+}
+
+/* Search Input */
+.search-input {
+    padding: 8px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+/* Auth Buttons */
+.auth-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.login-btn {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.signup-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.login-btn:hover {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.signup-btn:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Cart Icon */
+.cart-icon {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+/* Welcome Message */
+.welcome-text {
+    margin: 0 10px;
+    color: var(--text-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-list {
+        flex-direction: column;
+        position: absolute;
+        top: 80px;
+        left: 0;
+        background-color: var(--background-color);
+        width: 100%;
+        padding: 20px 0;
+        display: none;
+    }
+
+    .nav-item {
+        margin: 10px 0;
+    }
+
+    .search-cart {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0 20px;
+    }
+
+    .auth-btn {
+        width: 100%;
+        text-align: center;
+        margin: 5px 0;
+    }
+} 

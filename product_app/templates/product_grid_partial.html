@@ -1,0 +1,139 @@
+{% load static %}
+{% for product in products %}
+    <div class="product-card" data-category="{{ product.category }}">
+        <div class="product-image">
+            <img src="{{ product.get_image_url }}" alt="{{ product.name }}" loading="lazy">
+            {% if product.is_featured %}
+                <div class="featured-badge">Featured</div>
+            {% endif %}
+        </div>
+        <div class="product-content">
+            <h3 class="product-title">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+            <div class="product-details">
+                <span class="price">₹{{ product.price }}</span>
+                <span class="stock">Stock: {{ product.quantity }}</span>
+            </div>
+            <div class="product-actions">
+                <a href="{% url 'edit_product' product.id %}" class="edit-btn">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <form method="POST" action="{% url 'toggle_featured' product.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="featured-btn {% if product.is_featured %}active{% endif %}">
+                        <i class="fas fa-star"></i>
+                    </button>
+                </form>
+                <form method="POST" action="{% url 'delete_product' product.id %}" class="d-inline delete-form">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-btn" onclick="return confirmDelete(event, '{{ product.name }}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% empty %}
+    <div class="no-products">
+        <i class="fas fa-box-open"></i>
+        <h3>No Products Found</h3>
+        <p>Start adding your agricultural products to showcase them to potential buyers.</p>
+        <a href="{% url 'add_product' %}" class="add-product-btn">
+            <i class="fas fa-plus"></i> Add Your First Product
+        </a>
+    </div>
+{% endfor %}
+
+{% if products.has_other_pages %}
+    <div class="pagination">
+        {% if products.has_previous %}
+            <a href="?page={{ products.previous_page_number }}&search={{ search_query }}&category={{ current_category }}&sort={{ current_sort }}" 
+               hx-get="{% url 'my_products' %}?page={{ products.previous_page_number }}&search={{ search_query }}&category={{ current_category }}&sort={{ current_sort }}"
+               hx-target="#productsGrid"
+               hx-push-url="true">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+        {% endif %}
+
+        {% for num in products.paginator.page_range %}
+            {% if products.number == num %}
+                <span class="page-link active">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}&search={{ search_query }}&category={{ current_category }}&sort={{ current_sort }}" 
+                   class="page-link"
+                   hx-get="{% url 'my_products' %}?page={{ num }}&search={{ search_query }}&category={{ current_category }}&sort={{ current_sort }}"
+                   hx-target="#productsGrid"
+                   hx-push-url="true">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if products.has_next %}
+            <a href="?page={{ products.next_page_number }}&search={{ search_query }}&category={{ current_category }}&sort={{ current_sort }}" 
+               class="page-link"
+               hx-get="{% url 'my_products' %}?page={{ products.next_page_number }}&search={{ search_query }}&category={{ current_category }}&sort={{ current_sort }}"
+               hx-target="#productsGrid"
+               hx-push-url="true">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+
+<script>
+function confirmDelete(event, productName) {
+    event.preventDefault();
+    if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+        event.target.closest('form').submit();
+    }
+    return false;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle delete form submissions
+    document.querySelectorAll('.delete-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productCard = this.closest('.product-card');
+            const productName = productCard.querySelector('.product-title').textContent;
+            
+            if (confirm(`Are you sure you want to delete "${productName}"?`)) {
+                const deleteBtn = this.querySelector('.delete-btn');
+                deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                deleteBtn.disabled = true;
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        productCard.style.animation = 'fadeOut 0.3s ease';
+                        setTimeout(() => {
+                            productCard.remove();
+                            // If no products left, reload the page
+                            if (data.remaining_count === 0) {
+                                location.reload();
+                            }
+                        }, 300);
+                    } else {
+                        throw new Error(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                    deleteBtn.disabled = false;
+                    alert('Failed to delete product. Please try again.');
+                });
+            }
+        });
+    });
+});
+</script> 

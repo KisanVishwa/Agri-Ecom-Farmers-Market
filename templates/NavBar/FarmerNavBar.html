@@ -1,0 +1,76 @@
+<!-- farmer_nav.html -->
+{% load static %}
+
+{% if user.is_authenticated and user.farmerprofile %}
+<nav class="nav-menu">
+    <ul class="nav-links">
+        <li>
+            <a href="{% url 'farmer_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'farmer_dashboard' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'add_product' %}" class="nav-link {% if request.resolver_match.url_name == 'add_product' %}active{% endif %}">
+                <i class="fas fa-plus"></i>
+                <span>Add Product</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'my_products' %}" class="nav-link {% if request.resolver_match.url_name == 'my_products' %}active{% endif %}">
+                <i class="fas fa-box"></i>
+                <span>Products</span>
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Orders</span>
+            </a>
+        </li>
+        <li class="profile-menu">
+            <a href="#" class="nav-link profile-toggle">
+                <i class="fas fa-user"></i>
+                <span>{{ user.username|truncatechars:12 }}</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="dropdown-menu">
+                <a href="#" class="dropdown-item">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="#" class="dropdown-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'logout' %}" class="dropdown-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </li>
+    </ul>
+</nav>
+
+<!-- Add this script at the bottom of the file -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profileToggle = document.querySelector('.profile-toggle');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+
+    // Toggle dropdown on click
+    profileToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!profileToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endif %}

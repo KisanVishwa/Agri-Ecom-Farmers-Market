@@ -1,0 +1,275 @@
+.kv-chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999999;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    isolation: isolate;
+}
+
+.kv-chat-container {
+    display: none;
+    width: 340px;
+    height: auto;
+    max-height: 600px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    z-index: 999999;
+    position: relative;
+}
+
+.kv-chat-container.visible {
+    display: flex !important;
+    flex-direction: column;
+}
+
+.kv-chat-header {
+    padding: 20px;
+    background: #4CAF50;
+    color: white;
+    font-weight: 600;
+    font-size: 1.2em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kv-close-chat {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.kv-chat-messages {
+    padding: 20px;
+    background: #fff;
+    overflow-y: auto;
+    max-height: 400px;
+    position: relative;
+    z-index: 999999;
+}
+
+/* Message styling */
+.kv-message {
+    margin: 12px 0;
+    max-width: 80%;
+    line-height: 1.5;
+    background: #f8f9fa;
+    border-radius: 18px;
+    padding: 12px 16px;
+}
+
+.kv-bot-message {
+    margin-right: auto;
+    color: #2D2D2D;
+}
+
+.kv-bot-message .kv-message-bubble {
+    background-color: #F1F8E9;
+    border-left: 3px solid #8BC34A;
+    margin: 0;
+    width: auto;
+    max-width: 100%;
+}
+
+.kv-user-message {
+    margin-left: auto;
+    background: #E8F5E9;
+    color: #1B5E20;
+}
+
+.kv-message-time {
+    font-size: 0.75em;
+    color: #757575;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Input area */
+.kv-chat-input {
+    padding: 16px;
+    background: #fff;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 999999;
+}
+
+.kv-chat-input form {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+    align-items: center;
+}
+
+.kv-chat-input input[type="text"] {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #E0E0E0;
+    border-radius: 24px;
+    font-size: 0.95em;
+    background: #f8f9fa;
+}
+
+.kv-chat-input input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* Attachment button */
+.kv-attachment-btn {
+    background: none;
+    border: none;
+    color: #757575;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+/* Toggle button */
+.kv-chat-toggle {
+    width: 60px;
+    height: 60px;
+    background: #4CAF50;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: transform 0.2s ease;
+    z-index: 999999;
+    position: relative;
+}
+
+.kv-chat-toggle:hover {
+    transform: scale(1.05);
+}
+
+/* Common avatar styling */
+.kv-bot-avatar {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 8px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kv-bot-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Message content layout */
+.kv-message-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: auto;
+    max-width: 100%;
+}
+
+/* Farmer-specific styles */
+.kv-farmer-bot-message .kv-bot-avatar {
+    background: #E8F5E9;
+    border: 2px solid #4CAF50;
+}
+
+.kv-farmer-bot-message .kv-message-bubble {
+    background-color: #F1F8E9;
+    border-left: 3px solid #8BC34A;
+}
+
+/* Customer-specific styles */
+.kv-customer-bot-message .kv-bot-avatar {
+    background: #E8F5E9;
+    border: 2px solid #4CAF50;
+}
+
+.kv-customer-bot-message .kv-message-bubble {
+    background-color: #F1F8E9;
+    border-left: 3px solid #8BC34A;
+}
+
+/* Message bubbles */
+.kv-message-bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    position: relative;
+}
+
+/* Message meta information */
+.kv-message-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 0.75em;
+    color: #757575;
+}
+
+/* Message type tag */
+.kv-message-tag {
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Remove any conflicting styles from chat.css */
+.general-chat-container,
+.general-chat-header,
+.general-chat-messages,
+.general-message,
+.general-user-message,
+.general-bot-message {
+    /* Reset any conflicting styles */
+    max-width: none;
+    margin: initial;
+    width: auto;
+}
+
+/* Farmer-specific header */
+.kv-header-farmer {
+    background: #4CAF50;  /* Green theme for farmers */
+}
+
+/* Customer-specific header */
+.kv-header-customer {
+    background: #4CAF50;  /* Green theme for customers */
+}
+
+/* Update existing styles */
+.kv-chat-farmer .kv-chat-toggle {
+    background: #4CAF50;
+}
+
+.kv-chat-customer .kv-chat-toggle {
+    background: #4CAF50;
+}
+
+/* Update loading spinner */
+.kv-chat-loading {
+    z-index: 1000000;
+    position: relative;
+}

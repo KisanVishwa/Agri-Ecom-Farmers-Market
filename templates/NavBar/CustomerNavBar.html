@@ -1,0 +1,120 @@
+{% load static %}
+<header class="site-header">
+    <div class="header-container">
+        <div class="brand">
+            <a href="{% url 'customer_dashboard' %}" class="logo">
+                <img src="{% static 'images/kisan_vishwa_logo.png' %}" alt="Kisan Vishwa Logo">
+
+            </a>
+        </div>
+
+        <nav class="main-nav">
+            <ul class="nav-list">
+                <li>
+                    <a href="{% url 'customer_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'shop' %}" class="nav-item {% if request.resolver_match.url_name == 'shop' %}active{% endif %}">
+                        <i class="fas fa-store"></i>
+                        <span>Shop</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'customer_cart' %}" class="nav-item {% if request.resolver_match.url_name == 'customer_cart' %}active{% endif %}">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Cart</span>
+                        {% if cart_items_count > 0 %}
+                            <span class="badge">{{ cart_items_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'customer_wishlist' %}" class="nav-item {% if request.resolver_match.url_name == 'customer_wishlist' %}active{% endif %}">
+                        <i class="fas fa-heart"></i>
+                        <span>Wishlist</span>
+                        {% if wishlist_count > 0 %}
+                            <span class="badge">{{ wishlist_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+            </ul>
+
+            <div class="user-menu">
+                <button class="user-menu-toggle">
+                    <div class="user-info">
+                        {% if user.customer_profile.profile_picture %}
+                            <img src="{{ user.customer_profile.profile_picture.url }}" alt="" class="user-avatar">
+                        {% else %}
+                            <i class="fas fa-user"></i>
+                        {% endif %}
+                        <span>{{ user.username }}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </button>
+                
+                <div class="dropdown-menu">
+                    <!-- Account Section -->
+                    <div class="dropdown-section">
+                        <a href="{% url 'customer_profile' %}" class="dropdown-item">
+                            <i class="fas fa-user-circle"></i>
+                            <span>My Profile</span>
+                        </a>
+                        <a href="{% url 'customer_orders' %}" class="dropdown-item">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span>My Orders</span>
+                        </a>
+                        <a href="{% url 'customer_wishlist' %}" class="dropdown-item">
+                            <i class="fas fa-heart"></i>
+                            <span>My Wishlist</span>
+                        </a>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+
+                    <!-- Settings Section -->
+                    <div class="dropdown-section">
+                        <a href="{% url 'customer_addresses' %}" class="dropdown-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Manage Addresses</span>
+                        </a>
+                        <a href="{% url 'customer_payment_methods' %}" class="dropdown-item">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Payment Methods</span>
+                        </a>
+                        <a href="{% url 'customer_notifications' %}" class="dropdown-item">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+
+                    <!-- Help Section -->
+                    <div class="dropdown-section">
+                        <a href="{% url 'customer_support' %}" class="dropdown-item">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Help & Support</span>
+                        </a>
+                        <a href="{% url 'customer_feedback' %}" class="dropdown-item">
+                            <i class="fas fa-comment-alt"></i>
+                            <span>Give Feedback</span>
+                        </a>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+
+                    <!-- Logout -->
+                    <div class="dropdown-section">
+                        <a href="{% url 'logout' %}" class="dropdown-item logout-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>

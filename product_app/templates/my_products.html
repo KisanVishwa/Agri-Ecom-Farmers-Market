@@ -1,0 +1,242 @@
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/farmerdesign.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/my_product.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/chat_widget.css' %}">
+{% endblock %}
+
+{% block content %}
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <header class="header">
+        <div class="logo">
+            <img src="{% static 'images/kisan_vishwa_logo.png' %}" alt="Kisan Vishwa Logo">
+        </div>
+        {% include 'NavBar/FarmerNavBar.html' %}
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>My Products</h1>
+            <p>Manage and track all your agricultural products in one place.</p>
+            <div class="hero-features">
+                <span class="feature"><i class="fas fa-box"></i> Total Products: {{ products.count }}</span>
+                <span class="feature"><i class="fas fa-chart-line"></i> Active Listings</span>
+                <span class="feature"><i class="fas fa-clock"></i> Recent Updates</span>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <div class="products-controls">
+            <div class="search-filter">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" 
+                           id="searchInput"
+                           placeholder="Search products..." 
+                           value="{{ search_query|default:'' }}">
+                </div>
+                <div class="filter-options">
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">All Categories</option>
+                        {% for category_value, category_name in PRODUCT_CATEGORIES %}
+                            <option value="{{ category_value }}" {% if current_category == category_value %}selected{% endif %}>
+                                {{ category_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <select id="sortFilter" class="filter-select">
+                        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                        <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+                        <option value="price-high" {% if current_sort == 'price-high' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="price-low" {% if current_sort == 'price-low' %}selected{% endif %}>Price: Low to High</option>
+                    </select>
+                    <button id="clearFilters" class="clear-filters-btn">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+            <a href="{% url 'add_product' %}" class="add-product-btn">
+                <i class="fas fa-plus"></i> Add New Product
+            </a>
+        </div>
+
+        <div id="productsGrid" class="products-grid">
+            {% include 'product_grid_partial.html' with products=products %}
+        </div>
+
+        <script>
+        let filterTimeout;
+
+        function applyFilters() {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => {
+                const category = document.getElementById('categoryFilter').value;
+                const sort = document.getElementById('sortFilter').value;
+                const search = document.getElementById('searchInput').value;
+
+                const url = new URL(window.location);
+                
+                // Handle category parameter
+                if (category) {
+                    url.searchParams.set('category', category);
+                } else {
+                    url.searchParams.delete('category');
+                }
+                
+                // Handle other parameters
+                if (sort && sort !== 'newest') {
+                    url.searchParams.set('sort', sort);
+                } else {
+                    url.searchParams.delete('sort');
+                }
+                
+                if (search) {
+                    url.searchParams.set('search', search);
+                } else {
+                    url.searchParams.delete('search');
+                }
+
+                window.location = url;
+            }, 500);
+        }
+
+        // Add event listeners
+        document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+        document.getElementById('sortFilter').addEventListener('change', applyFilters);
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+        // Clear filters
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('sortFilter').value = 'newest';
+            window.location = window.location.pathname;
+        });
+        </script>
+    </main>
+
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div id="loadingOverlay" class="htmx-indicator">
+    <div class="spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle delete form submissions
+    document.querySelectorAll('.delete-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productCard = this.closest('.product-card');
+            const productName = productCard.querySelector('.product-title').textContent;
+            
+            if (confirm(`Are you sure you want to delete "${productName}"?`)) {
+                // Show loading state
+                const deleteBtn = this.querySelector('.delete-btn');
+                deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                deleteBtn.disabled = true;
+                
+                // Submit the form
+                fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Animate the card removal
+                        productCard.style.animation = 'fadeOut 0.3s ease';
+                        setTimeout(() => {
+                            productCard.remove();
+                            // Check if there are no products left
+                            if (document.querySelectorAll('.product-card').length === 0) {
+                                location.reload(); // Reload to show the "No Products" message
+                            }
+                        }, 300);
+                    } else {
+                        throw new Error('Failed to delete product');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                    deleteBtn.disabled = false;
+                    alert('Failed to delete product. Please try again.');
+                });
+            }
+        });
+    });
+});
+</script>
+
+<style>
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.9); }
+}
+</style>
+
+<div id="chat-widget-container">
+    {% include 'chatbot_app/chat_widget.html' %}
+</div>
+
+<div class="chat-widget">
+    <button class="chat-toggle" 
+        {% if request.user.is_authenticated %}
+            hx-get="{% url 'chatbot_app:toggle_chat' %}"
+            hx-target="#chat-container"
+            hx-swap="innerHTML"
+        {% else %}
+            onclick="window.location.href='/login/?next={{ request.path }}'"
+        {% endif %}>
+        <i class="fas fa-comments"></i>
+    </button>
+    
+    {% if request.user.is_authenticated %}
+        <div id="chat-container" class="chat-container">
+            {% if request.session.chat_visible %}
+                <div class="chat-header">
+                    <h3>Chat Support</h3>
+                    <button class="close-chat"
+                            hx-get="{% url 'chatbot_app:toggle_chat' %}"
+                            hx-target="#chat-container"
+                            hx-swap="innerHTML">×</button>
+                </div>
+                
+                <div class="chat-messages">
+                    {% include 'chatbot_app/messages.html' %}
+                </div>
+                
+                <form class="chat-input" 
+                      hx-post="{% url 'chatbot_app:send_message' %}"
+                      hx-target=".chat-messages"
+                      hx-swap="beforeend">
+                    {% csrf_token %}
+                    <input type="text" name="message" placeholder="Type your message..." required>
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

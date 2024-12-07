@@ -1,0 +1,43 @@
+{% load static %}
+{% load tz %}
+{% for message in messages %}
+    {% if message.is_user %}
+        <div class="kv-message kv-user-message {{ message.get_message_class }}">
+            <div class="kv-message-content">
+                <div class="kv-message-bubble">
+                    {{ message.message|linebreaks }}
+                    <div class="kv-message-meta">
+                        <small class="kv-message-time">
+                            <i class="far fa-clock"></i> 
+                            {% timezone "Asia/Kolkata" %}
+                                {{ message.created_at|date:"j M, Y" }} {{ message.created_at|time:"g:i A" }}
+                            {% endtimezone %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="kv-message kv-bot-message {{ message.get_message_class }}">
+            <div class="kv-message-content">
+                <div class="kv-bot-avatar">
+                    <img src="{% static 'images/bot-avatar.png' %}" alt="Bot" width="38" height="38">
+                </div>
+                <div class="kv-message-bubble">
+                    {{ message.message|safe|linebreaks|cut:"*" }}
+                    <div class="kv-message-meta">
+                        <small class="kv-message-time">
+                            <i class="far fa-clock"></i> 
+                            {% timezone "Asia/Kolkata" %}
+                                {{ message.created_at|date:"j M, Y" }} {{ message.created_at|time:"g:i A" }}
+                            {% endtimezone %}
+                        </small>
+                        {% if message.message_type != 'general' %}
+                            <span class="kv-message-tag">{{ message.get_message_type_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %} 

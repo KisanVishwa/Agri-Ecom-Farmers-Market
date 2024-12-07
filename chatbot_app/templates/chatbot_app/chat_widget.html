@@ -1,0 +1,98 @@
+{% load static %}
+<div class="kv-chat-widget" data-user-type="{{ user_type }}">
+    <div class="kv-chat-loading" style="display:none;">
+        <div class="kv-loading-spinner"></div>
+    </div>
+
+    <button class="kv-chat-toggle" 
+        {% if request.user.is_authenticated %}
+            hx-get="{% url 'chatbot_app:toggle_chat' %}"
+            hx-target="#kv-chat-container"
+            hx-swap="innerHTML"
+            hx-trigger="click"
+            hx-indicator=".kv-chat-loading"
+        {% else %}
+            onclick="window.location.href='/login/?next={{ request.path }}'"
+        {% endif %}>
+        <i class="fas fa-comments"></i>
+    </button>
+    
+    <div id="kv-chat-container" class="kv-chat-container {% if show_chat_content %}visible{% endif %} kv-chat-{{ user_type }}">
+        {% if show_chat_content %}
+            <div class="kv-chat-header kv-header-{{ user_type }}">
+                <h3>{{ user_type|title }} Support</h3>
+                <button class="kv-close-chat"
+                        hx-get="{% url 'chatbot_app:toggle_chat' %}"
+                        hx-target="#kv-chat-container"
+                        hx-swap="innerHTML">×</button>
+            </div>
+            
+            <div class="kv-chat-messages" 
+                 hx-get="{% url 'chatbot_app:get_messages' %}" 
+                 hx-trigger="load">
+                {% include "chatbot_app/messages.html" %}
+            </div>
+            
+            <form class="kv-chat-input" 
+                  hx-post="{% url 'chatbot_app:send_message' %}"
+                  hx-target=".kv-chat-messages"
+                  hx-swap="innerHTML"
+                  hx-encoding="multipart/form-data"
+                  hx-on::after-request="this.querySelector('input[name=message]').value = ''"
+                  hx-trigger="submit">
+                {% csrf_token %}
+                <div class="kv-input-wrapper">
+                    <input type="text" 
+                           name="message" 
+                           placeholder="Type your message..." 
+                           required
+                           id="chat-message-input">
+                    <label class="kv-attachment-button">
+                        <i class="fas fa-paperclip"></i>
+                        <input type="file" name="attachment" accept="image/*,.pdf,.doc,.docx" hidden>
+                    </label>
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.kv-chat-input');
+    const input = document.querySelector('#chat-message-input');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            input.value = '';
+        });
+    }
+
+    htmx.on('htmx:afterRequest', function(evt) {
+        const container = document.querySelector('#kv-chat-container');
+        if (container && container.innerHTML.trim() !== '') {
+            container.classList.add('visible');
+            const messagesDiv = container.querySelector('.kv-chat-messages');
+            if (messagesDiv) {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        } else if (container) {
+            container.classList.remove('visible');
+        }
+    });
+
+    // Handle file input change
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('input[type="file"]')) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                const messageInput = e.target.closest('form').querySelector('input[name="message"]');
+                messageInput.value = messageInput.value || `Attached: ${fileName}`;
+            }
+        }
+    });
+});
+</script>

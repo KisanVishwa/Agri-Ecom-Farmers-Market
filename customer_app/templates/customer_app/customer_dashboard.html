@@ -1,0 +1,474 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Kisan Vishwa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/CustomerNavBar.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/customerdesign.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/customer_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat_widget.css' %}">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    {% include 'NavBar/CustomerNavBar.html' %}
+    
+    <!-- Place chat widget container after navbar -->
+    <div id="chat-widget-container">
+        {% include 'chatbot_app/chat_widget.html' %}
+    </div>
+    
+    <!-- Rest of your dashboard content -->
+    <div class="dashboard-container">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h2>Welcome back, {{ user.first_name|default:user.username }}!</h2>
+                <p class="welcome-subtitle">Here's what's happening with your account today</p>
+            </div>
+            <div class="date-weather">
+                <div class="current-date">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="current-date"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Grid -->
+        <section class="stats-grid">
+            <div class="stat-card orders" role="region" aria-label="Total Orders Statistics">
+                <div class="stat-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Total Orders</h3>
+                    <p class="stat-number">{{ orders.count|default:"0" }}</p>
+                    <p class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> 12% from last month
+                    </p>
+                </div>
+            </div>
+
+            <div class="stat-card cart">
+                <div class="stat-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Cart Items</h3>
+                    <p class="stat-number">{{ cart_items_count|default:"0" }}</p>
+                    <a href="{% url 'customer_cart' %}" class="view-link">View Cart</a>
+                </div>
+            </div>
+
+            <div class="stat-card wishlist">
+                <div class="stat-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Wishlist</h3>
+                    <p class="stat-number">{{ wishlist_count|default:"0" }}</p>
+                    <a href="{% url 'customer_wishlist' %}" class="view-link">View Wishlist</a>
+                </div>
+            </div>
+
+            <div class="stat-card savings">
+                <div class="stat-icon">
+                    <i class="fas fa-piggy-bank"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Total Savings</h3>
+                    <p class="stat-number">₹{{ total_savings|default:"0" }}</p>
+                    <p class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> 8% from last month
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Orders & Featured Products -->
+        <div class="dashboard-grid">
+            <!-- Recent Orders -->
+            <section class="recent-orders">
+                <div class="section-header">
+                    <h2>Recent Orders</h2>
+                    <a href="{% url 'customer_dashboard' %}" class="view-all">View History</a>
+                </div>
+                <div class="orders-list">
+                    {% if recent_orders %}
+                        {% for order in recent_orders %}
+                            <div class="order-card">
+                                <div class="order-image">
+                                    <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
+                                </div>
+                                <div class="order-details">
+                                    <h3>{{ order.product.name }}</h3>
+                                    <p class="order-meta">
+                                        <span class="order-date">{{ order.created_at|date:"M d, Y" }}</span>
+                                        <span class="order-status {{ order.status|lower }}">{{ order.status }}</span>
+                                    </p>
+                                    <p class="order-price">₹{{ order.total_price }}</p>
+                                </div>
+                                <a href="{% url 'track_order' order.order_id %}" class="track-order-btn">
+                                    <i class="fas fa-truck"></i> Track Order
+                                </a>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-orders">
+                            <i class="fas fa-box-open"></i>
+                            <p>No recent orders</p>
+                            <a href="{% url 'shop' %}" class="shop-now-btn">
+                                <i class="fas fa-shopping-basket"></i> Shop Now
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Featured Products -->
+            <section class="featured-products">
+                <div class="section-header">
+                    <h2>Featured Products</h2>
+                    <a href="{% url 'customer_dashboard' %}" class="view-all">View All</a>
+                </div>
+                <div class="products-grid">
+                    {% if featured_products %}
+                        {% for product in featured_products %}
+                            <div class="product-card" data-product-id="{{ product.id }}">
+                                <div class="product-image">
+                                    <img src="{{ product.get_image_url }}" alt="{{ product.name }}" loading="lazy">
+                                    {% csrf_token %}
+                                </div>
+                                <div class="product-details">
+                                    <h3>{{ product.name }}</h3>
+                                    <p class="product-price">₹{{ product.price }}</p>
+                                    <div class="product-actions">
+                                        <button class="add-to-cart" 
+                                                onclick="addToCart('{{ product.id }}', this)" 
+                                                data-product-id="{{ product.id }}">
+                                            <i class="fas fa-cart-plus"></i> Add to Cart
+                                        </button>
+                                        <button class="add-to-wishlist" onclick="toggleWishlist('{{ product.id }}')" aria-label="Add to wishlist">
+                                            <i class="fas fa-heart {% if product in wishlist_products %}active{% endif %}"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-products">No featured products available</p>
+                    {% endif %}
+                </div>
+
+                {% if featured_products.has_other_pages %}
+                <div class="pagination">
+                    {% if featured_products.has_previous %}
+                        <a href="?page={{ featured_products.previous_page_number }}" class="pagination-btn">&laquo; Previous</a>
+                    {% endif %}
+
+                    {% for num in featured_products.paginator.page_range %}
+                        {% if featured_products.number == num %}
+                            <span class="pagination-btn active">{{ num }}</span>
+                        {% else %}
+                            <a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if featured_products.has_next %}
+                        <a href="?page={{ featured_products.next_page_number }}" class="pagination-btn">Next &raquo;</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // Update current date
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateElement = document.getElementById('current-date');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateElement.textContent = new Date().toLocaleDateString('en-US', options);
+        });
+
+        async function toggleWishlist(productId) {
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const response = await fetch(`/customer/toggle-wishlist/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const heartIcon = document.querySelector(`[data-product-id="${productId}"] .add-to-wishlist i`);
+                    if (heartIcon) {
+                        heartIcon.classList.toggle('active');
+                    }
+                    const wishlistCount = document.querySelector('.wishlist .stat-number');
+                    if (wishlistCount) {
+                        wishlistCount.textContent = data.wishlist_count;
+                    }
+                    showToast(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error updating wishlist');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Debounce function to prevent multiple rapid clicks
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const addToCartButtons = document.querySelectorAll('.add-to-cart');
+            
+            // Keep track of pending requests
+            const pendingRequests = new Set();
+            
+            const handleAddToCart = async function(e) {
+                e.preventDefault();
+                const button = this;
+                const productId = button.getAttribute('data-product-id');
+                
+                // Prevent duplicate requests
+                if (pendingRequests.has(productId)) return;
+                
+                // Visual feedback
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+                
+                pendingRequests.add(productId);
+                
+                try {
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const response = await fetch(`/customer/add-to-cart/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Update cart count in the UI
+                        const cartCount = document.querySelector('.cart .stat-number');
+                        if (cartCount) {
+                            cartCount.textContent = data.cart_count;
+                        }
+                        showToast(data.message || 'Product added to cart');
+                        
+                        // Trigger a subtle animation
+                        button.classList.add('success');
+                        setTimeout(() => button.classList.remove('success'), 1000);
+                    } else {
+                        showToast(data.message || 'Error adding to cart');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast('Error adding to cart');
+                } finally {
+                    // Reset button state
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+                    pendingRequests.delete(productId);
+                }
+            };
+
+            // Add debounced click handler to each button
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', debounce(handleAddToCart, 300));
+            });
+
+            // Add chat widget functionality
+            const chatWidget = document.querySelector('.chat-widget');
+            const chatToggle = document.querySelector('.chat-widget-toggle');
+            const chatClose = document.querySelector('.chat-close');
+
+            if (chatToggle) {
+                chatToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    chatWidget.classList.toggle('chat-widget-expanded');
+                });
+            }
+
+            if (chatClose) {
+                chatClose.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    chatWidget.classList.remove('chat-widget-expanded');
+                });
+            }
+        });
+
+        // Enhanced toast notification
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-info-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Add to cart functionality
+        async function addToCart(productId, button) {
+            try {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                const response = await fetch(`/customer/add-to-cart/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Update cart count in stats
+                    const cartCount = document.querySelector('.cart .stat-number');
+                    if (cartCount) {
+                        cartCount.textContent = data.cart_count;
+                    }
+                    showToast(data.message || 'Product added to cart');
+                    button.classList.add('success');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error adding to cart');
+            } finally {
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+                    button.classList.remove('success');
+                }, 1000);
+            }
+        }
+
+        // Enhanced toast notification
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-info-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        .add-to-cart {
+            transition: all 0.3s ease;
+        }
+        
+        .add-to-cart:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .add-to-cart.success {
+            background-color: #4CAF50;
+            transform: scale(1.05);
+        }
+        
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+
+    <!-- Add after body tag -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+</body>
+</html>

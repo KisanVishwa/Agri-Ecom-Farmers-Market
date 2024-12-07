@@ -1,0 +1,148 @@
+body {
+  margin: 0; /* Remove default body margin */
+  overflow: hidden; /* Prevent body scrolling */
+}
+
+.signup-container {
+  height: 100vh; /* Ensure full height of the viewport */
+  font-family: var(--font-family);
+  display: flex;
+  flex-direction: column;
+}
+
+.signup-container .bg-image {
+  background-image: url('images/signup_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+}
+
+.signup-container .overlay {
+  background-color: rgba(0, 0, 0, 0.4);
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.signup-container .content {
+  display: flex;
+  flex-direction: column; /* Stack content vertically */
+  justify-content: center; /* Center content vertically */
+  align-items: center;
+  color: white;
+  height: 100%;
+}
+
+.signup-container .welcome-text {
+  font-size: 2rem; /* Reduced font size */
+  font-weight: 600;
+  line-height: 1.2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  color: white;
+  margin-bottom: 0.5rem; /* Reduced margin */
+}
+
+.signup-container .caption {
+  margin: 0 0 10px; /* Reduced margins */
+}
+
+.signup-container .signup-form {
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 2rem; /* Reduced padding */
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-height: 93vh; /* Set a maximum height to fit without scrolling */
+  width: 90%; /* Responsive width */
+  overflow: hidden; /* Prevent internal scrolling */
+}
+
+.signup-container .form-control {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  padding: 4px; /* Adjusted padding */
+  margin-bottom: 0.5rem; /* Adjusted margin */
+}
+
+.signup-container .form-control:focus {
+  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.25);
+}
+
+.signup-container .btn-signup {
+  background-color: #50b458; /* Normal green color */
+  border: none;
+  padding: 0.5rem; /* Reduced padding */
+  font-weight: 600;
+  color: #fff;
+  width: 100%; /* Full width for better visibility */
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Separate transitions for clarity */
+}
+
+.signup-container .btn-signup:hover,
+.signup-container .btn-signup:focus {
+  background-color: #388E3C; /* Darker shade of green on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 142, 60, 0.4); /* Adjusted shadow color to match hover */
+}
+
+.signup-container .social-icons a {
+  color: white;
+  font-size: 1.5rem;
+  margin-right: 1.5rem;
+  transition: opacity 0.3s ease;
+}
+
+.signup-container .social-icons a:hover {
+  opacity: 0.7;
+}
+
+.signup-container .password-field {
+  position: relative;
+}
+
+.signup-container .password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  transition: color 0.3s ease;
+}
+
+.signup-container .password-toggle:hover {
+  color: #495057;
+}
+
+.signup-container .form-check-input:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+@media (max-width: 991px) {
+  .signup-container .content {
+      flex-direction: column;
+      padding: 10px; /* Add some padding */
+  }
+
+  .signup-container .welcome-text {
+      font-size: 1.75rem; /* Further reduced font size */
+  }
+
+  .signup-container .signup-form {
+      padding: 1rem; /* Smaller padding */
+  }
+}
+
+@media (max-width: 768px) {
+  .signup-container .welcome-text {
+      font-size: 1.5rem; /* Further reduced font size */
+  }
+}
+
+@media (max-width: 576px) {
+  .signup-container .welcome-text {
+      font-size: 1.25rem; /* Further reduced font size */
+  }
+}

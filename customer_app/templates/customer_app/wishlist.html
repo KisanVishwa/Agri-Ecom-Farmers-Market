@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Wishlist - Kisan Vishwa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/CustomerNavBar.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/customerdesign.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/wishlist.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat_widget.css' %}">
+    <style>
+        body {
+            padding-top: 70px;
+            background-color: #f5f5f5;
+        }
+    </style>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    {% include 'NavBar/CustomerNavBar.html' %}
+    {% csrf_token %}
+    
+    <main class="main-container">
+        <div class="wishlist-header">
+            <h1>My Wishlist</h1>
+            <div class="wishlist-summary">
+                <span>{{ wishlist_items|length }} items</span>
+            </div>
+        </div>
+
+        
+        {% if wishlist_items %}
+            <div class="wishlist-grid">
+                {% for item in wishlist_items %}
+                    <div class="wishlist-card" data-product-id="{{ item.product.id }}">
+                        <div class="wishlist-image">
+                            <img src="{{ item.product.get_image_url }}" alt="{{ item.product.name }}">
+                        </div>
+                        <div class="wishlist-content">
+                            <h2>{{ item.product.name }}</h2>
+                            <p class="price">₹{{ item.product.price }}</p>
+                            <div class="wishlist-actions">
+                                <button onclick="addToCart('{{ item.product.id }}', this)" class="add-to-cart-btn">
+                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                </button>
+                                <button onclick="toggleWishlist('{{ item.product.id }}')" class="remove-btn">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-wishlist">
+                <i class="far fa-heart"></i>
+                <h2>Your wishlist is empty</h2>
+                <p>Add items that you like to your wishlist</p>
+                <a href="{% url 'customer_dashboard' %}" class="start-shopping-btn">
+                    Start Shopping
+                </a>
+            </div>
+        {% endif %}
+    </main>
+
+    <div id="chat-widget-container">
+        {% include 'chatbot_app/chat_widget.html' %}
+    </div>
+
+    <script>
+        async function addToCart(productId, button) {
+            try {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                const response = await fetch(`/customer/add-to-cart/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast(data.message || 'Product added to cart');
+                    button.classList.add('success');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error adding to cart');
+            } finally {
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+                    button.classList.remove('success');
+                }, 1000);
+            }
+        }
+
+        async function toggleWishlist(productId) {
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const response = await fetch(`/customer/toggle-wishlist/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Remove the wishlist card from the UI
+                    const wishlistCard = document.querySelector(`[data-product-id="${productId}"]`);
+                    if (wishlistCard) {
+                        wishlistCard.remove();
+                    }
+                    // Update wishlist count if displayed
+                    const wishlistCount = document.querySelector('.wishlist-summary span');
+                    if (wishlistCount) {
+                        const currentCount = parseInt(wishlistCount.textContent);
+                        wishlistCount.textContent = `${currentCount - 1} items`;
+                    }
+                    showToast(data.message);
+                    
+                    // If no items left, show empty wishlist message
+                    const wishlistGrid = document.querySelector('.wishlist-grid');
+                    if (wishlistGrid && !wishlistGrid.children.length) {
+                        location.reload(); // Reload to show empty state
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error updating wishlist');
+            }
+        }
+
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-info-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        .add-to-cart-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .add-to-cart-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .add-to-cart-btn.success {
+            background-color: #4CAF50;
+            transform: scale(1.05);
+        }
+        
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</body>
+</html>

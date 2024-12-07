@@ -1,0 +1,191 @@
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/farmerdesign.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/my_product.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/chat_widget.css' %}">
+{% endblock %}
+
+{% block content %}
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <header class="header">
+        <div class="logo">
+            <img src="{% static 'images/kisan_vishwa_logo.png' %}" alt="Kisan Vishwa Logo">
+        </div>
+        {% include 'NavBar/FarmerNavBar.html' %}
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Edit Product</h1>
+            <p>Update your product information</p>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <section class="add-product-section">
+            <div class="form-container">
+                {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            <div class="message {{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data" class="product-form">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        {% if field.name == 'image' %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}" class="form-label">Product Image</label>
+                                <div class="image-container">
+                                    <div class="current-image">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt="Current product image" class="preview-image">
+                                            <div class="image-actions">
+                                                <div class="clear-image-checkbox">
+                                                    <input type="checkbox" name="clear_image" id="clear_image" class="form-check-input">
+                                                    <label for="clear_image" class="form-check-label">Clear current image</label>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <img src="{% static 'images/default_product.jpg' %}" alt="Default image" class="preview-image">
+                                        {% endif %}
+                                    </div>
+                                    {{ field }}
+                                    <small class="help-text">Upload a new image or check the box to clear current image</small>
+                                    {% if field.errors %}
+                                        <div class="error-message">{{ field.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="error-message">{{ field.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <a href="{% url 'my_products' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <div id="chat-widget-container">
+        {% include 'chatbot_app/chat_widget.html' %}
+    </div>
+
+    <div class="chat-widget">
+        <button class="chat-toggle" 
+            {% if request.user.is_authenticated %}
+                hx-get="{% url 'chatbot_app:toggle_chat' %}"
+                hx-target="#chat-container"
+                hx-swap="innerHTML"
+            {% else %}
+                onclick="window.location.href='/login/?next={{ request.path }}'"
+            {% endif %}>
+            <i class="fas fa-comments"></i>
+        </button>
+        
+        {% if request.user.is_authenticated %}
+            <div id="chat-container" class="chat-container">
+                {% if request.session.chat_visible %}
+                    <div class="chat-header">
+                        <h3>Chat Support</h3>
+                        <button class="close-chat"
+                                hx-get="{% url 'chatbot_app:toggle_chat' %}"
+                                hx-target="#chat-container"
+                                hx-swap="innerHTML">×</button>
+                    </div>
+                    
+                    <div class="chat-messages">
+                        {% include 'chatbot_app/messages.html' %}
+                    </div>
+                    
+                    <form class="chat-input" 
+                          hx-post="{% url 'chatbot_app:send_message' %}"
+                          hx-target=".chat-messages"
+                          hx-swap="beforeend">
+                        {% csrf_token %}
+                        <input type="text" name="message" placeholder="Type your message..." required>
+                        <button type="submit">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const imageInput = document.getElementById('id_image');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    const placeholder = imagePreview.querySelector('.placeholder');
+
+    imagePreview.addEventListener('click', () => {
+        imageInput.click();
+    });
+
+    imageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+                placeholder.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Clear image functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const clearImageBtns = document.querySelectorAll('.clear-image-btn');
+        
+        clearImageBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                if (confirm('Are you sure you want to clear this image?')) {
+                    fetch(`/product_app/clear-product-image/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Update the image to default
+                            const previewImage = document.querySelector('.preview-image');
+                            previewImage.src = "{% static 'images/default_product.jpg' %}";
+                            // Hide the clear button
+                            this.style.display = 'none';
+                            // Show success message
+                            location.reload(); // Reload to show the success message
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

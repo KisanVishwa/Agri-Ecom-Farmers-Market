@@ -1,0 +1,253 @@
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/farmerdesign.css' %}">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/chat_widget.css' %}">
+</head>
+<body>
+    <header class="header">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <div class="logo">
+            <img src="{% static 'images/kisan_vishwa_logo.png' %}" alt="Kisan Vishwa Logo">
+        </div>
+        {% include 'NavBar/FarmerNavBar.html' %}
+    </header>
+
+    <section class="hero">
+        <div class="dashboard-stats-container">
+            <div class="dashboard-stats">
+                <div class="stat-box">
+                    <span class="stat-number">{{ products.count }}</span>
+                    <span class="stat-label">Active Products</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">{{ total_sales|default:"0" }}</span>
+                    <span class="stat-label">Total Sales</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-content">
+            <h1>Welcome to Your Farmer Dashboard</h1>
+            <p>Manage your products, track sales, and grow your agricultural business with Kisan Vishwa.</p>
+            <div class="hero-features">
+                <div class="feature">
+                    <i class="fas fa-store"></i>
+                    <span>Manage Products</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Track Performance</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-users"></i>
+                    <span>Connect with Buyers</span>
+                </div>
+            </div>
+            <div class="cta-buttons">
+                <a href="{% url 'add_product' %}" class="btn btn-primary">Add New Product <i class="fas fa-plus"></i></a>
+                <a href="#marketplace" class="btn btn-secondary">View Analytics <i class="fas fa-chart-bar"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <section class="products-section">
+            <h2 class="section-title">Your Products</h2>
+            <div class="add-product">
+                <a href="{% url 'add_product' %}" class="add-product-btn">+ Add New Product</a>
+            </div>
+            <div class="card-grid">
+                {% if products %}
+                    {% for product in products %}
+                        <article class="card">
+                            <div class="card-image">
+                                <img src="{{ product.get_image_url }}" alt="{{ product.name }}">
+                            </div>
+                            <div class="card-content">
+                                <h2 class="card-title">{{ product.name }}</h2>
+                                <p class="card-description">{{ product.description|truncatechars:100 }}</p>
+                                <button class="read-more-btn"
+                                    onclick="showProductDetails(
+                                        '{{ product.name|escapejs }}',
+                                        '{{ product.description|escapejs }}',
+                                        '{{ product.price }}',
+                                        '{{ product.category }}',
+                                        '{{ product.quantity }}',
+                                        '{{ product.image.url }}'
+                                    )">
+                                    View Details
+                                </button>
+                            </div>
+                        </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-products-message">
+                        <p>No products added yet. Click the button above to add your first product.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="featured-section">
+            <h1 class="section-title">Featured Articles</h1>
+
+            <div class="card-grid">
+                <article class="card">
+                    <div class="card-image">
+                        <img src="{% static 'images/healthy-eating.jpg' %}" alt="Healthy Eating">
+                    </div>
+                    <div class="card-content">
+                        <h2 class="card-title">5 Tips for Healthy Eating</h2>
+                        <p class="card-description">Discover how to incorporate more organic produce into your diet with these simple tips!</p>
+                        <button class="read-more-btn">Read More</button>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-image">
+                        <img src="{% static 'images/organic-farming.jpg' %}" alt="Organic Farming">
+                    </div>
+                    <div class="card-content">
+                        <h2 class="card-title">The Benefits of Organic Farming</h2>
+                        <p class="card-description">Learn about the environmental and health benefits of choosing organic farming practices.</p>
+                        <button class="read-more-btn">Read More</button>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-image">
+                        <img src="{% static 'images/sustainable-eating.jpg' %}" alt="Sustainable Eating">
+                    </div>
+                    <div class="card-content">
+                        <h2 class="card-title">Sustainable Eating: A Beginner's Guide</h2>
+                        <p class="card-description">Get started with sustainable eating by understanding its impact on the environment.</p>
+                        <button class="read-more-btn">Read More</button>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-image">
+                        <img src="{% static 'images/seasonal-produce.jpg' %}" alt="Seasonal Produce">
+                    </div>
+                    <div class="card-content">
+                        <h2 class="card-title">Seasonal Produce: What to Eat Now</h2>
+                        <p class="card-description">Find out which fruits and vegetables are in season this month for the freshest options.</p>
+                        <button class="read-more-btn">Read More</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Kisan Vishwa. All rights reserved.</p>
+    </footer>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body">
+                <div class="modal-image">
+                    <img id="modalImage" src="" alt="Product Image">
+                </div>
+                <div class="modal-details">
+                    <h2 id="modalTitle"></h2>
+                    <p id="modalDescription"></p>
+                    <div class="modal-info">
+                        <p><strong>Price:</strong> ₹<span id="modalPrice"></span></p>
+                        <p><strong>Category:</strong> <span id="modalCategory"></span></p>
+                        <p><strong>Stock:</strong> <span id="modalStock"></span> units</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const modal = document.getElementById('productModal');
+    const closeBtn = document.querySelector('.close-modal');
+
+    function showProductDetails(name, description, price, category, stock, imageUrl) {
+        document.getElementById('modalTitle').textContent = name;
+        document.getElementById('modalDescription').textContent = description;
+        document.getElementById('modalPrice').textContent = price;
+        document.getElementById('modalCategory').textContent = category;
+        document.getElementById('modalStock').textContent = stock;
+        document.getElementById('modalImage').src = imageUrl;
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';  // Prevent background scrolling
+    }
+
+    closeBtn.onclick = function() {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';  // Restore scrolling
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modal.style.display === 'block') {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+    </script>
+
+    <!-- Add Chat Widget -->
+    <link rel="stylesheet" href="{% static 'css/chat_widget.css' %}">
+    {% include 'chatbot_app/chat_widget.html' %}
+
+    <div class="chat-widget">
+        <button class="chat-toggle" 
+            {% if request.user.is_authenticated %}
+                hx-get="{% url 'chatbot_app:toggle_chat' %}"
+                hx-target="#chat-container"
+                hx-swap="innerHTML"
+            {% else %}
+                onclick="window.location.href='/login/?next={{ request.path }}'"
+            {% endif %}>
+            <i class="fas fa-comments"></i>
+        </button>
+        
+        {% if request.user.is_authenticated %}
+            <div id="chat-container" class="chat-container">
+                {% if request.session.chat_visible %}
+                    <div class="chat-header">
+                        <h3>Chat Support</h3>
+                        <button class="close-chat"
+                                hx-get="{% url 'chatbot_app:toggle_chat' %}"
+                                hx-target="#chat-container"
+                                hx-swap="innerHTML">×</button>
+                    </div>
+                    
+                    <div class="chat-messages">
+                        {% include 'chatbot_app/messages.html' %}
+                    </div>
+                    
+                    <form class="chat-input" 
+                          hx-post="{% url 'chatbot_app:send_message' %}"
+                          hx-target=".chat-messages"
+                          hx-swap="beforeend">
+                        {% csrf_token %}
+                        <input type="text" name="message" placeholder="Type your message..." required>
+                        <button type="submit">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

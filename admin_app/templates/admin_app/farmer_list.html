@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kisan Vishwa Admin - Farmer Management">
+    <title>Admin - Farmers</title>
+    
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+</head>
+
+<body>
+    {% include 'NavBar/AdminNavBar.html' %}
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Farmer Management</h1>
+            <p class="subtitle">Total Farmers: {{ farmers.count }}</p>
+        </div>
+
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Products</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for farmer in farmers %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="farmer-info">
+                                <i class="fas fa-user-cog"></i>
+                                <span>{{ farmer.user.username }}</span>
+                            </div>
+                        </td>
+                        <td>{{ farmer.user.email }}</td>
+                        <td>
+                            <span class="product-count">
+                                {{ farmer.product_count }}
+                                <span class="product-label">products</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove_farmer">
+                                    <input type="hidden" name="farmer_id" value="{{ farmer.id }}">
+                                    <button type="submit" class="btn-delete">
+                                        <i class="fas fa-trash"></i>
+                                        <span>Remove</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', (event) => {
+                if (!confirm('Are you sure you want to remove this farmer?')) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

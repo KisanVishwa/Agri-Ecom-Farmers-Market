@@ -1,0 +1,16 @@
+Thank you for your order!
+
+Dear {{ user.first_name }},
+
+Your order #{{ order.order_id }} has been successfully placed.
+
+Order Details:
+{% for item in order_items %}
+- {{ item.product.name }} (x{{ item.quantity }}) - ₹{{ item.price }}
+{% endfor %}
+
+Total Amount: ₹{{ total_amount }}
+
+You can track your order at: {{ request.scheme }}://{{ request.get_host }}{% url 'track_order' order.order_id %}
+
+Thank you for shopping with us!

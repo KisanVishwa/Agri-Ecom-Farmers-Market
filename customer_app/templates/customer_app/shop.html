@@ -1,0 +1,387 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Wishlist - Kisan Vishwa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/CustomerNavBar.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/customerdesign.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/shop.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat_widget.css' %}">
+    <style>
+        body {
+            padding-top: 40px;
+            background-color: #f5f5f5;
+        }
+    </style>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    {% include 'NavBar/CustomerNavBar.html' %}
+    
+    <div id="chat-widget-container">
+        {% include 'chatbot_app/chat_widget.html' %}
+    </div>
+
+    <div class="main-container">
+        <main class="shop-container">
+            <div class="shop-header">
+                <h1>Shop Products</h1>
+                <div class="filter-container">
+                    <div class="filter-group-left">
+                        <div class="shop-search-bar">
+                            <input type="text" 
+                                   id="searchInput" 
+                                   placeholder="Search products..." 
+                                   value="{{ request.GET.search|default:'' }}">
+                            <i class="fas fa-search search-icon" id="searchIcon"></i>
+                            <div id="searchSuggestions" class="search-suggestions"></div>
+                        </div>
+                        
+                        <div class="filter-selects-container">
+                            <select id="categoryFilter" class="filter-select">
+                                <option value="">All Categories</option>
+                                {% for category_value, category_name in PRODUCT_CATEGORIES %}
+                                    <option value="{{ category_value }}" {% if current_category == category_value %}selected{% endif %}>
+                                        <i class="fas {{ CATEGORY_ICONS|get_item:category_value }}"></i> {{ category_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            
+                            <select id="sortFilter" class="filter-select">
+                                <option value="default">Sort By</option>
+                                <option value="price_low">Price: Low to High</option>
+                                <option value="price_high">Price: High to Low</option>
+                                <option value="newest">Newest First</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-group-right">
+                        <div class="price-range">
+                            <input type="number" 
+                                   id="minPrice" 
+                                   placeholder="Min Price" 
+                                   value="{{ min_price|default:'' }}"
+                                   step="1"
+                                   min="0"
+                                   oninput="validatePrice(this)"
+                                   class="price-input">
+                            <span>-</span>
+                            <input type="number" 
+                                   id="maxPrice" 
+                                   placeholder="Max Price" 
+                                   value="{{ max_price|default:'' }}"
+                                   step="1"
+                                   min="0"
+                                   oninput="validatePrice(this)"
+                                   class="price-input">
+                        </div>
+
+                        <button id="clearFilters" class="clear-filters-btn">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="products-grid">
+                {% for product in products %}
+                <div class="product-card" data-product-id="{{ product.id }}">
+                    <div class="product-image">
+                        <img src="{{ product.get_image_url }}" alt="{{ product.name }}" loading="lazy">
+                        {% csrf_token %}
+                    </div>
+                    <div class="product-details">
+                        <h3>{{ product.name }}</h3>
+                        <p class="product-price">₹{{ product.price }}</p>
+                        <div class="product-actions">
+                            <button class="add-to-cart-btn" 
+                                    onclick="addToCart('{{ product.id }}', this)" 
+                                    data-product-id="{{ product.id }}">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                            <button class="add-to-wishlist" onclick="toggleWishlist('{{ product.id }}')" aria-label="Add to wishlist">
+                                <i class="fas fa-heart {% if product in wishlist_products %}active{% endif %}"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="pagination">
+                {% if products.has_previous %}
+                    <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="pagination-link">
+                        <i class="fas fa-angle-double-left"></i> First
+                    </a>
+                    <a href="?page={{ products.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="pagination-link">
+                        <i class="fas fa-angle-left"></i> Previous
+                    </a>
+                {% endif %}
+
+                <span class="current-page">
+                    Page {{ products.number }} of {{ products.paginator.num_pages }}
+                </span>
+
+                {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="pagination-link">
+                        Next <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ products.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="pagination-link">
+                        Last <i class="fas fa-angle-double-right"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all filter elements
+            const searchInput = document.getElementById('searchInput');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const sortFilter = document.getElementById('sortFilter');
+            const minPrice = document.getElementById('minPrice');
+            const maxPrice = document.getElementById('maxPrice');
+            const clearFilters = document.getElementById('clearFilters');
+            const searchSuggestions = document.getElementById('searchSuggestions');
+            const searchIcon = document.getElementById('searchIcon');
+
+            // Function to update URL and reload page with filters
+            function applyFilters() {
+                const params = new URLSearchParams(window.location.search);
+                
+                // Update search parameter
+                if (searchInput.value) params.set('search', searchInput.value);
+                else params.delete('search');
+                
+                // Update category parameter
+                if (categoryFilter.value) params.set('category', categoryFilter.value);
+                else params.delete('category');
+                
+                // Update sort parameter
+                if (sortFilter.value !== 'default') params.set('sort', sortFilter.value);
+                else params.delete('sort');
+                
+                // Update price parameters
+                if (minPrice.value) params.set('min_price', minPrice.value);
+                else params.delete('min_price');
+                
+                if (maxPrice.value) params.set('max_price', maxPrice.value);
+                else params.delete('max_price');
+                
+                // Reset to first page when filters change
+                params.delete('page');
+                
+                // Update URL and reload page
+                window.location.href = `${window.location.pathname}?${params.toString()}`;
+            }
+
+            // Search suggestions functionality
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+                
+                searchTimeout = setTimeout(() => {
+                    if (query.length >= 2) {
+                        fetch(`/search-suggestions/?query=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                searchSuggestions.innerHTML = '';
+                                data.suggestions.forEach(suggestion => {
+                                    const div = document.createElement('div');
+                                    div.className = 'suggestion-item';
+                                    div.textContent = suggestion.name;
+                                    div.onclick = () => {
+                                        searchInput.value = suggestion.name;
+                                        searchSuggestions.innerHTML = '';
+                                        applyFilters();
+                                    };
+                                    searchSuggestions.appendChild(div);
+                                });
+                            });
+                    } else {
+                        searchSuggestions.innerHTML = '';
+                    }
+                }, 300);
+            });
+
+            // Add event listeners for filters
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') applyFilters();
+            });
+            
+            categoryFilter.addEventListener('change', applyFilters);
+            sortFilter.addEventListener('change', applyFilters);
+            
+            // Debounce price inputs
+            let priceTimeout;
+            function handlePriceChange() {
+                clearTimeout(priceTimeout);
+                priceTimeout = setTimeout(applyFilters, 500);
+            }
+            
+            minPrice.addEventListener('change', handlePriceChange);
+            maxPrice.addEventListener('change', handlePriceChange);
+
+            // Clear all filters
+            clearFilters.addEventListener('click', function() {
+                window.location.href = window.location.pathname;
+            });
+
+            // Close suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                    searchSuggestions.innerHTML = '';
+                }
+            });
+
+            // Add this after your other event listeners
+            searchIcon.addEventListener('click', applyFilters);
+            searchIcon.style.cursor = 'pointer'; // Make it look clickable
+        });
+
+        // Price validation function
+        function validatePrice(input) {
+            if (input.value < 0) input.value = 0;
+            if (input.value > 999999) input.value = 999999;
+        }
+
+        async function toggleWishlist(productId) {
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const response = await fetch(`/customer/toggle-wishlist/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const heartIcon = document.querySelector(`[data-product-id="${productId}"] .add-to-wishlist i`);
+                    if (heartIcon) {
+                        heartIcon.classList.toggle('active');
+                    }
+                    showToast(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error updating wishlist');
+            }
+        }
+
+        async function addToCart(productId, button) {
+            try {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                const response = await fetch(`/customer/add-to-cart/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast(data.message || 'Product added to cart');
+                    button.classList.add('success');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error adding to cart');
+            } finally {
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+                    button.classList.remove('success');
+                }, 1000);
+            }
+        }
+
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-info-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        .add-to-cart {
+            transition: all 0.3s ease;
+        }
+        
+        .add-to-cart:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .add-to-cart.success {
+            background-color: #4CAF50;
+            transform: scale(1.05);
+        }
+        
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</body>
+</html>

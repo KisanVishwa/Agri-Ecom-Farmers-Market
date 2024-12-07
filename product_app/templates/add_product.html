@@ -1,0 +1,235 @@
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - Kisan Vishwa</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/farmerdesign.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/add_product.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" href="{% static 'css/chat_widget.css' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="{% static 'images/kisan_vishwa_logo.png' %}" alt="Kisan Vishwa Logo">
+        </div>
+        {% include 'NavBar/FarmerNavBar.html' %}
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Add New Product</h1>
+            <p>List your agricultural products for sale on Kisan Vishwa.</p>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <section class="add-product-section">
+            <div class="form-container">
+                {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            <div class="message {{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data" class="product-form">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        {% if field.name == 'image' %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}" class="form-label">Product Image</label>
+                                <div class="image-upload-container">
+                                    <div class="image-preview" id="imagePreview">
+                                        <img src="{% static 'images/default_product.jpg' %}" alt="Preview" id="previewImage">
+                                        <div class="placeholder">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <p>Click here or drag and drop</p>
+                                            <span>Supported formats: JPG, PNG, GIF (max 5MB)</span>
+                                        </div>
+                                    </div>
+                                    <input type="file" 
+                                           id="id_image" 
+                                           name="image" 
+                                           accept="image/*"
+                                           style="display: none;">
+                                </div>
+                                {% if field.errors %}
+                                    <span class="error-message">{{ field.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                        {% elif field.name == 'price' %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                <div class="price-input-wrapper">
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                    <span class="error-message">{{ field.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <span class="error-message">{{ field.errors.0 }}</span>
+                                    {% endif %}
+                                    {% if field.help_text %}
+                                        <small class="help-text">{{ field.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
+                        <a href="{% url 'farmer_dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    {% block extra_js %}
+    <script>
+        const imageInput = document.getElementById('id_image');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        const placeholder = imagePreview.querySelector('.placeholder');
+
+        // Make the preview div clickable to trigger file input
+        imagePreview.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    
+                    // Reset any previous styles
+                    previewImage.style.width = '';
+                    previewImage.style.height = '';
+                    
+                    // After image loads, check dimensions and adjust if needed
+                    previewImage.onload = function() {
+                        const containerWidth = imagePreview.offsetWidth;
+                        const containerHeight = imagePreview.offsetHeight;
+                        const imageRatio = this.naturalWidth / this.naturalHeight;
+                        const containerRatio = containerWidth / containerHeight;
+
+                        if (imageRatio > containerRatio) {
+                            // Image is wider than container
+                            this.style.width = '90%';
+                            this.style.height = 'auto';
+                        } else {
+                            // Image is taller than container
+                            this.style.height = '90%';
+                            this.style.width = 'auto';
+                        }
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        const form = document.querySelector('.product-form');
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const clearImageBtn = document.querySelector('.clear-image-btn');
+            if (clearImageBtn) {
+                clearImageBtn.addEventListener('click', async function() {
+                    if (confirm('Are you sure you want to clear this image?')) {
+                        const productId = this.dataset.productId;
+                        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                        
+                        try {
+                            const response = await fetch(`/product_app/clear-product-image/${productId}/`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': csrfToken
+                                }
+                            });
+                            
+                            if (response.ok) {
+                                window.location.reload();
+                            } else {
+                                throw new Error('Failed to clear image');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('Failed to clear image. Please try again.');
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    {% endblock %}
+
+    <link rel="stylesheet" href="{% static 'css/chat_widget.css' %}">
+    {% include 'chatbot_app/chat_widget.html' %}
+
+    <div class="chat-widget">
+        <button class="chat-toggle" 
+            {% if request.user.is_authenticated %}
+                hx-get="{% url 'chatbot_app:toggle_chat' %}"
+                hx-target="#chat-container"
+                hx-swap="innerHTML"
+            {% else %}
+                onclick="window.location.href='/login/?next={{ request.path }}'"
+            {% endif %}>
+            <i class="fas fa-comments"></i>
+        </button>
+        
+        {% if request.user.is_authenticated %}
+            <div id="chat-container" class="chat-container">
+                {% if request.session.chat_visible %}
+                    <div class="chat-header">
+                        <h3>Chat Support</h3>
+                        <button class="close-chat"
+                                hx-get="{% url 'chatbot_app:toggle_chat' %}"
+                                hx-target="#chat-container"
+                                hx-swap="innerHTML">×</button>
+                    </div>
+                    
+                    <div class="chat-messages">
+                        {% include 'chatbot_app/messages.html' %}
+                    </div>
+                    
+                    <form class="chat-input" 
+                          hx-post="{% url 'chatbot_app:send_message' %}"
+                          hx-target=".chat-messages"
+                          hx-swap="beforeend">
+                        {% csrf_token %}
+                        <input type="text" name="message" placeholder="Type your message..." required>
+                        <button type="submit">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

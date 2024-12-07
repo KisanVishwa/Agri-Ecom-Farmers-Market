@@ -1,0 +1,327 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Kisan Vishwa is an e-commerce platform for organic and fresh produce directly from farmers.">
+    <meta name="keywords" content="Organic, Fresh, Produce, Farmers, E-commerce">
+    <meta name="author" content="Kisan Vishwa Team">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kisan Vishwa - Organic E-Commerce</title>
+
+    <!-- Link to your custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/homedesign.css' %}">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Your custom JavaScript -->
+    <script src="{% static 'scripts.js' %}"></script>
+
+    <!-- Add these lines if not present -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://unpkg.com/htmx.org"></script>
+</head>
+<body>
+    <!-- Your content goes here -->
+
+</body>
+</html>
+
+<body>
+    {% include 'NavBar/HomeNavBar.html' %}
+
+    <!-- Slider Wrapper -->
+    <div class="slider-wrapper" id="slider-wrapper">
+        <!-- Slideshow Section -->
+        <div class="slideshow-container swiper-container">
+            <div class="swiper-wrapper">
+                <!-- Slide 1 -->
+                <div class="swiper-slide first-slide">
+                    <div class="slide-image">
+                        <img src="{% static 'images/farmer1.png' %}" alt="Farmer">
+                    </div>
+                    <div class="slide-content">
+                        <h1>Tasty & Healthy Organic Food</h1>
+                        <p>100% genuine products</p>
+                        <button class="shop-now" onclick="redirectToRegister()">Shop Now</button>
+                    </div>
+                </div>
+
+                <!-- Slide 2 -->
+                <div class="swiper-slide second-slide">
+                    <div class="slide-content">
+                        <h1>Fresh & Organic Products</h1>
+                        <p>Discover our selection</p>
+                        <button class="explore-products" onclick="redirectToRegister()">Explore Products</button>
+                        <button class="learn-more" onclick="redirectToRegister()">Learn More</button>
+                    </div>
+                    <div class="slide-image">
+                        <img src="{% static 'images/farmer2.png' %}" alt="Organic Products">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Navigation -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+
+            <!-- Add Pagination -->
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+<section class="featured-products" id="featured-products">
+    <h2>Featured Products</h2>
+    <div class="product-grid">
+        {% for product in featured_products %}
+            <div class="product-card">
+                <div class="image-container">
+                    <img src="{{ product.get_image_url }}" alt="{{ product.name }}">
+                </div>
+                <h3>{{ product.name }}</h3>
+                <p class="price">₹{{ product.price }}</p>
+                <button class="cta-btn" onclick="redirectToRegister()">Add to Cart</button>
+            </div>
+        {% empty %}
+            <p>No featured products available at the moment.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+    // Function to redirect to the registration page
+    function redirectToRegister() {
+        window.location.href = "{% url 'register' %}";
+    }
+</script>
+
+<section class="blog-highlights" id="blog-highlights">
+    <h2>From Our Blog</h2>
+    <div class="blog-grid">
+        <!-- Blog Post 1 -->
+        <div class="blog-card">
+            <img src="{% static 'images/blog1.jpg' %}" alt="Blog Post 1">
+            <h3>5 Tips for Healthy Eating</h3>
+            <p>Discover how to incorporate more organic produce into your diet with these simple tips!</p>
+            <a href="#" class="read-more" onclick="redirectToRegister()">Read More</a>
+        </div>
+
+        <!-- Blog Post 2 -->
+        <div class="blog-card">
+            <img src="{% static 'images/blog2.jpg' %}" alt="Blog Post 2">
+            <h3>The Benefits of Organic Farming</h3>
+            <p>Learn about the environmental and health benefits of choosing organic farming practices.</p>
+            <a href="#" class="read-more" onclick="redirectToRegister()">Read More</a>
+        </div>
+
+        <!-- Blog Post 3 -->
+        <div class="blog-card">
+            <img src="{% static 'images/blog3.jpg' %}" alt="Blog Post 3">
+            <h3>Sustainable Eating: A Beginner's Guide</h3>
+            <p>Get started with sustainable eating by understanding its impact on the environment.</p>
+            <a href="#" class="read-more" onclick="redirectToRegister()">Read More</a>
+        </div>
+
+        <!-- Blog Post 4 -->
+        <div class="blog-card">
+            <img src="{% static 'images/blog4.jpg' %}" alt="Blog Post 4">
+            <h3>Seasonal Produce: What to Eat Now</h3>
+            <p>Find out which fruits and vegetables are in season this month for the freshest options.</p>
+            <a href="#" class="read-more" onclick="redirectToRegister()">Read More</a>
+        </div>
+
+        <!-- Blog Post 5 -->
+        <div class="blog-card">
+            <img src="{% static 'images/blog5.jpg' %}" alt="Blog Post 5">
+            <h3>Farm to Table: The Journey</h3>
+            <p>Explore how your food travels from our local farms to your dinner table.</p>
+            <a href="#" class="read-more" onclick="redirectToRegister()">Read More</a>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Function to redirect to the registration page
+    function redirectToRegister() {
+        window.location.href = "{% url 'register' %}";
+    }
+</script>
+
+
+<section class="customer-stories" id="customer-stories">
+    <div class="container">
+        <h2 class="text-center mb-5">Customer Stories</h2>
+        <div class="testimonial-carousel-wrapper"> <!-- New Wrapper Div -->
+            <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <!-- First slide -->
+                        <div class="carousel-item active">
+                            <div class="row">
+                                <div class="col-md-6 col-lg-3 mb-4">
+                                    <div class="testimonial-card text-center">
+                                        <img src="{% static 'images/customer1.png.webp' %}" alt="Photo of Riya Sharma" class="customer-image mx-auto d-block" loading="lazy">
+                                        <blockquote class="testimonial-text">
+                                            "The fresh produce from Kisan Vishwa has changed the way I cook! I love the quality and variety!"
+                                        </blockquote>
+                                        <p class="customer-name">- Riya Sharma</p>
+                                    </div>
+                                </div>
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="testimonial-card text-center">
+                                    <img src="{% static 'images/customer2.png.webp' %}" alt="Photo of Anil Kumar" class="customer-image mx-auto d-block" loading="lazy">
+                                    <blockquote class="testimonial-text">
+                                        "Great service and the vegetables are always fresh! Highly recommended!"
+                                    </blockquote>
+                                    <p class="customer-name">- Anil Kumar</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="testimonial-card text-center">
+                                    <img src="{% static 'images/customer3.png.webp' %}" alt="Photo of Meera Patel" class="customer-image mx-auto d-block" loading="lazy">
+                                    <blockquote class="testimonial-text">
+                                        "I appreciate the convenience of having organic produce delivered to my doorstep!"
+                                    </blockquote>
+                                    <p class="customer-name">- Meera Patel</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="testimonial-card text-center">
+                                    <img src="{% static 'images/customer4.jpeg' %}" alt="Photo of Rajesh Singh" class="customer-image mx-auto d-block" loading="lazy">
+                                    <blockquote class="testimonial-text">
+                                        "Kisan Vishwa is my go-to for all my grocery needs! The quality is unmatched!"
+                                    </blockquote>
+                                    <p class="customer-name">- Rajesh Singh</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Second slide -->
+                    <div class="carousel-item">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="testimonial-card text-center">
+                                    <img src="{% static 'images/customer5.png.webp' %}" alt="Photo of Riya Sharma" class="customer-image mx-auto d-block" loading="lazy">
+                                    <blockquote class="testimonial-text">
+                                        "The fresh produce from Kisan Vishwa has changed the way I cook! I love the quality and variety!"
+                                    </blockquote>
+                                    <p class="customer-name">- Riya Sharma</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="testimonial-card text-center">
+                                    <img src="{% static 'images/customer6.jpeg' %}" alt="Photo of Anil Kumar" class="customer-image mx-auto d-block" loading="lazy">
+                                    <blockquote class="testimonial-text">
+                                        "Great service and the vegetables are always fresh! Highly recommended!"
+                                    </blockquote>
+                                    <p class="customer-name">- Anil Kumar</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="testimonial-card text-center">
+                                    <img src="{% static 'images/customer7.png' %}" alt="Photo of Meera Patel" class="customer-image mx-auto d-block" loading="lazy">
+                                    <blockquote class="testimonial-text">
+                                        "I appreciate the convenience of having organic produce delivered to my doorstep!"
+                                    </blockquote>
+                                    <p class="customer-name">- Meera Patel</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="testimonial-card text-center">
+                                    <img src="{% static 'images/customer8.png' %}" alt="Photo of Rajesh Singh" class="customer-image mx-auto d-block" loading="lazy">
+                                    <blockquote class="testimonial-text">
+                                        "Kisan Vishwa is my go-to for all my grocery needs! The quality is unmatched!"
+                                    </blockquote>
+                                    <p class="customer-name">- Rajesh Singh</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carousel controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="about" id="about">
+    <h2>About Us</h2>
+    <div class="about-content">
+        <div class="about-text">
+            <p>
+                At Kisan Vishwa, we are passionate about bringing fresh, organic produce directly from farmers to your table. Our mission is to promote sustainable farming practices and connect consumers with the source of their food. We believe that everyone deserves access to high-quality, nutritious food. By working closely with local farmers, we ensure that our products are not only fresh but also ethically sourced.
+            </p>
+            <p>
+                Join us in our journey to create a healthier planet and a better future for our community. Whether you’re a home cook or a seasoned chef, we have something for everyone!
+            </p>
+            <button class="cta-btn" onclick="redirectToRegister()">Learn More</button>
+        </div>
+        <div class="about-image">
+            <img src="{% static 'images/team1.jpg' %}" alt="Our Team" loading="lazy">
+        </div>
+    </div>
+</section>
+
+<section class="newsletter">
+    <h2>Join Our Community for Fresh Updates!</h2>
+    <p>Subscribe to our newsletter to receive the latest news, promotions, and tips on healthy eating directly to your inbox.</p>
+    <form>
+        <input type="email" placeholder="Your Email" required>
+        <button type="submit" class="subscribe-btn">Subscribe</button>
+    </form>
+</section>
+
+<footer>
+    <div class="footer-container">
+        <div class="footer-links">
+            <h3>Quick Links</h3>
+            <ul>
+                <li><a href="#privacy">Privacy Policy</a></li>
+                <li><a href="#terms">Terms of Service</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+        <div class="social-media">
+            <h3>Follow Us</h3>
+            <div class="social-icons">
+                <a href="#facebook" class="social-icon">Facebook</a>
+                <a href="#instagram" class="social-icon">Instagram</a>
+                <a href="#twitter" class="social-icon">Twitter</a>
+            </div>
+        </div>
+        <div class="contact-info" id="contact-info">
+            <h3>Contact Info</h3>
+            <p>Address: KLEF Deemed to be University, Green Fields, Vijayawada, Andhra Pradesh, 522302</p>
+            <p>Phone: +91 9876543229</p>
+            <p>Email: <a href="mailto:agricultureecom@gmail.com">agricultureecom@gmail.com</a></p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 Kisan Vishwa. All Rights Reserved.</p>
+    </div>
+</footer>
+
+<!-- Include Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+</html>

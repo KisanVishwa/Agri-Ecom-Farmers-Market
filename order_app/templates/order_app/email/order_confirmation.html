@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Add your email styles here */
+    </style>
+</head>
+<body>
+    <h2>Thank you for your order!</h2>
+    <p>Dear {{ user.first_name }},</p>
+    <p>Your order #{{ order.order_id }} has been successfully placed.</p>
+    
+    <h3>Order Details:</h3>
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+        </tr>
+        {% for item in order_items %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>₹{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <p><strong>Total Amount: ₹{{ total_amount }}</strong></p>
+    
+    <p>You can track your order status here: 
+        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'track_order' order.order_id %}">
+            Track Order
+        </a>
+    </p>
+    
+    <p>Thank you for shopping with us!</p>
+</body>
+</html>
