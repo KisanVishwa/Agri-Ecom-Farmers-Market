@@ -59,7 +59,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'chatbot_app.middleware.ChatRateLimitMiddleware',
     'chatbot_app.middleware.APITrackingMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 ROOT_URLCONF = 'Agri_Ecommerce.urls'
