@@ -33,12 +33,16 @@ class GeminiService:
             raise GeminiServiceError(f"Failed to initialize Gemini: {str(e)}")
     
     def _test_connection(self):
-        try:
-            test_response = self.model.generate_content("Test connection")
-            if not test_response:
-                raise GeminiServiceError("No response from Gemini API")
-        except Exception as e:
-            raise GeminiServiceError(f"Connection test failed: {str(e)}")
+    try:
+        if cache.get("gemini_api_tested"):
+            return  # Skip testing if recently verified
+        test_response = self.model.generate_content("Test connection")
+        if not test_response:
+            raise GeminiServiceError("No response from Gemini API")
+        cache.set("gemini_api_tested", True, 300)  # Cache success for 5 minutes
+    except Exception as e:
+        raise GeminiServiceError(f"Connection test failed: {str(e)}")
+
     
     def _calculate_tokens(self, text):
         # Simple estimation: ~4 chars per token
