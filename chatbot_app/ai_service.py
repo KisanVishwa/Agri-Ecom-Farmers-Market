@@ -69,14 +69,21 @@ class GeminiService:
                     Always maintain a friendly, helpful tone focused on shopping."""
             }
 
-            prompt = f"""{base_prompts[user_type]}
+            # Fallback prompt if user_type is invalid
+            fallback_prompt = """You are Kisan Vishwa's general-purpose AI assistant. Respond helpfully to the following query."""
+
+            prompt = f"""{base_prompts.get(user_type, fallback_prompt)}
 
             Previous context: The user is a {user_type}.
             Message type: {message_type}
             User query: {message}
             
             Provide a helpful, concise response appropriate for a {user_type}."""
+            
             response = self.model.generate_content(prompt)
+            
+            if not response or not response.text.strip():
+                raise GeminiServiceError("Empty response received from Gemini API")
             
             # Calculate and log API usage
             input_tokens = self._calculate_tokens(prompt)
@@ -88,7 +95,8 @@ class GeminiService:
                 endpoint='gemini-pro',
                 tokens_used=total_tokens,
                 cost=cost,
-                user=getattr(self._thread_local, 'current_user', None)
+                user=getattr(self._thread_local, 'current_user', None),
+                success=True
             )
             
             result = {
@@ -99,6 +107,7 @@ class GeminiService:
             return result
             
         except Exception as e:
+            logger.error(f"Error in get_response: {e}")
             APIUsage.objects.create(
                 endpoint='gemini-pro',
                 tokens_used=0,
@@ -107,4 +116,8 @@ class GeminiService:
                 error_message=str(e),
                 user=getattr(self._thread_local, 'current_user', None)
             )
-            return None
+            # Fallback response for critical failure
+            return {
+                'text': "Sorry, I am unable to process your request at the moment. Please try again later.",
+                'message_type': message_type
+            }
