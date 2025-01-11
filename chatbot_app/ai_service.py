@@ -18,38 +18,49 @@ class GeminiServiceError(ChatbotError):
 class GeminiService:
     _thread_local = threading.local()
     COST_PER_TOKEN = 0.00001  # Update this based on actual Gemini pricing
-    
+
     def __init__(self):
         try:
             if not settings.GEMINI_API_KEY:
                 raise GeminiServiceError("Gemini API key not found")
-            
+
             genai.configure(api_key=settings.GEMINI_API_KEY)
             self.model = genai.GenerativeModel('gemini-pro')
-            self._test_connection()
-            
+
         except Exception as e:
             logger.error(f"Gemini initialization error: {str(e)}")
             raise GeminiServiceError(f"Failed to initialize Gemini: {str(e)}")
-    
+
     def _test_connection(self):
         try:
-            test_response = self.model.generate_content("Test connection")
-            if not test_response:
-                raise GeminiServiceError("No response from Gemini API")
+            from time import sleep
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    test_response = self.model.generate_content("Test connection")
+                    if test_response:
+                        return True
+                except Exception as e:
+                    if "RATE_LIMIT_EXCEEDED" in str(e):
+                        if attempt < max_retries - 1:
+                            sleep(2 ** attempt)  # Exponential backoff
+                            continue
+                    raise e
+            return False
         except Exception as e:
-            raise GeminiServiceError(f"Connection test failed: {str(e)}")
-    
+            logger.warning(f"Connection test failed: {str(e)}")
+            return False
+
     def _calculate_tokens(self, text):
         # Simple estimation: ~4 chars per token
         return len(text) // 4
-    
+
     def get_response(self, message, user_type, message_type):
         cache_key = f"gemini_response_{user_type}_{hash(f'{message}_{message_type}')}"
         cached_response = cache.get(cache_key)
         if cached_response:
             return cached_response
-        
+
         try:
             # User-type specific prompts
             base_prompts = {
@@ -74,30 +85,30 @@ class GeminiService:
             Previous context: The user is a {user_type}.
             Message type: {message_type}
             User query: {message}
-            
+
             Provide a helpful, concise response appropriate for a {user_type}."""
             response = self.model.generate_content(prompt)
-            
+
             # Calculate and log API usage
             input_tokens = self._calculate_tokens(prompt)
             output_tokens = self._calculate_tokens(response.text)
             total_tokens = input_tokens + output_tokens
             cost = total_tokens * self.COST_PER_TOKEN
-            
+
             APIUsage.objects.create(
                 endpoint='gemini-pro',
                 tokens_used=total_tokens,
                 cost=cost,
                 user=getattr(self._thread_local, 'current_user', None)
             )
-            
+
             result = {
                 'text': response.text,
                 'message_type': message_type
             }
             cache.set(cache_key, result, 3600)
             return result
-            
+
         except Exception as e:
             APIUsage.objects.create(
                 endpoint='gemini-pro',
